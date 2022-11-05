@@ -1,0 +1,168 @@
+
+//Arduino RC Car With Relay
+#include <ESP8266WiFi.h>
+#include<FirebaseArduino.h>
+#define WIFISSID "DSP"                             
+#define PASSWORD "Dsp@2000"  
+
+#define FIREBASE_HOST "mycar-bc464-default-rtdb.firebaseio.com"
+#define FIREBASE_AUTH "Kp0Zw2UEJjfeC0KyGClAqkCLytSdhuo0g3N6kGLe"
+
+
+String fireStatus = ""; 
+
+
+int MotorRF = 5;  
+int MotorRB = 4;
+
+int MotorLF = 13;
+int MotorLB = 15;
+
+
+
+void Forward(){
+  digitalWrite(MotorRF, HIGH);
+  digitalWrite(MotorRB, LOW);
+  digitalWrite(MotorLF, HIGH);
+  digitalWrite(MotorLB, LOW);
+  digitalWrite(0, LOW);
+  digitalWrite(2, LOW);
+  digitalWrite(14, LOW);
+   digitalWrite(12, LOW);
+  digitalWrite(3, HIGH);
+}
+
+void Backward(){
+    digitalWrite(MotorRF, LOW);
+  digitalWrite(MotorRB, HIGH);
+  digitalWrite(MotorLF, LOW);
+  digitalWrite(MotorLB, HIGH);
+  digitalWrite(0, LOW);
+  digitalWrite(2, LOW);
+  digitalWrite(14, HIGH);
+   digitalWrite(12, HIGH);
+  digitalWrite(3, HIGH);
+}
+
+
+
+void Right(){
+    digitalWrite(MotorRF, LOW);
+  digitalWrite(MotorRB, LOW);
+  digitalWrite(MotorLF, HIGH);
+  digitalWrite(MotorLB, LOW);
+  digitalWrite(0, HIGH);
+  digitalWrite(2, LOW);
+  digitalWrite(14, LOW);
+   digitalWrite(12, LOW);
+  digitalWrite(3, HIGH);
+   
+}
+
+void Left(){
+      digitalWrite(MotorRF, HIGH);
+  digitalWrite(MotorRB, LOW);
+  digitalWrite(MotorLF, LOW);
+  digitalWrite(MotorLB, LOW);
+  digitalWrite(0, LOW);
+  digitalWrite(2, HIGH);
+  digitalWrite(14, LOW);
+   digitalWrite(12, LOW);
+  digitalWrite(3, HIGH);
+}
+
+void Stop(){
+      digitalWrite(MotorRF, LOW);
+  digitalWrite(MotorRB,  LOW);
+  digitalWrite(MotorLF,  LOW);
+  digitalWrite(MotorLB,  LOW);
+  digitalWrite(0, LOW);
+  digitalWrite(2, LOW);
+  digitalWrite(14, LOW);
+   digitalWrite(12, LOW);
+  digitalWrite(3, LOW);
+}
+
+void setup() {
+
+   Serial.begin(9600);
+   
+  WiFi.begin(WIFISSID,PASSWORD);
+  Serial.print("connecting");
+  while (WiFi.status()!=WL_CONNECTED){
+    Serial.print(".");
+    delay(500);
+  }
+  Serial.println();
+  Serial.print("connected:");
+  Serial.println(WiFi.localIP());
+
+  Firebase.begin(FIREBASE_HOST,FIREBASE_AUTH);
+  Firebase.setString("LED_STATUS", "STOP");    
+
+   
+    pinMode(MotorLF ,OUTPUT); 
+  pinMode(MotorRB ,OUTPUT); 
+  pinMode(MotorRF ,OUTPUT);
+  pinMode(MotorLB ,OUTPUT);
+
+  //leds
+  pinMode(0, OUTPUT);
+  pinMode(2, OUTPUT);
+  pinMode(14, OUTPUT);
+  pinMode(12, OUTPUT);
+  pinMode(3, OUTPUT);
+   
+  
+ 
+
+}
+
+void firebasereconnect()
+{
+  Serial.println("Trying to reconnect");
+  Firebase.begin(FIREBASE_HOST, FIREBASE_AUTH);
+  }
+
+void loop() {
+
+  if (Firebase.failed())
+      {
+      Serial.print("setting number failed:");
+      Serial.println(Firebase.error());
+      firebasereconnect();
+      return;
+      }
+
+  fireStatus = Firebase.getString("LED_STATUS"); 
+  
+    
+
+    if(fireStatus == "FORD"){
+      Forward();
+      delay(500);
+      Serial.print("FORD");
+    }
+    if(fireStatus == "BACK"){
+      Backward();
+      Serial.print("BACK");
+    }
+    if(fireStatus == "LEFT"){
+      Left();
+      delay(500);
+      Serial.print("LEFT");
+      Stop();
+    }
+    if(fireStatus == "RIGHT"){
+      Right();
+      delay(500);
+      Serial.print("RIGHT");
+      Stop();
+    }
+    if(fireStatus == "STOP"){
+      Stop();
+      Serial.print("STOP");
+    }
+ 
+
+}
